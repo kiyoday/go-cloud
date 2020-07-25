@@ -138,3 +138,18 @@ func FileMetaUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
 }
+
+// 删除文件及元信息
+func FileDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	fileSha1 := r.Form.Get("filehash")
+
+	fMeta := meta.GetFileMeta(fileSha1)
+	// 删除文件 物理删除
+	os.Remove(fMeta.Location)
+	// 删除文件元信息
+	meta.RemoveFileMeta(fileSha1)
+	// TODO: 删除表文件信息
+
+	w.WriteHeader(http.StatusOK)
+}
