@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"time"
+	"encoding/json"
 
 	"../meta"
 	"../util"
@@ -48,7 +49,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request){
 		//拷贝到新文件的buffer区
 		fileMeta.FileSize,err = io.Copy(newFile,file)
 		if err!=nil {
-			fmt.Printf("Failed to save data into file,err:%s \n")
+			fmt.Printf("Failed to save data into file,err:%s \n",err.Error())
 			return
 		}
 
@@ -65,3 +66,42 @@ func UploadHandler(w http.ResponseWriter, r *http.Request){
 func UploadSucHandler(w http.ResponseWriter, r *http.Request){
 	_, _ = io.WriteString(w, "Upload success!")
 }
+
+// 获取文件元信息
+func GetFileMetaHandler(w http.ResponseWriter,r *http.Request){
+	r.ParseForm()
+
+	filehash := r.Form["filehash"][0]
+	fMeta := meta.GetFileMeta(filehash)
+	data, err := json.Marshal(fMeta) // 转换成json格式
+	if err!=nil {
+		fmt.Printf("failed to get file meta,err:%s \n",err.Error())
+	}
+	w.Write(data)
+
+}
+//
+//func DownloadHandler(w http.ResponseWriter,r *http.Request){
+//	r.ParseForm()
+//	fsha1 := r.Form.Get("filehash")
+//	fm := meta.GetFileMeta(fsha1)
+//
+//	f,err := os.Open(fm.Location)
+//	if err != nil {
+//		w.WriteHeader(http.StatusInternalServerError)
+//		return
+//	}
+//	defer f.Close()
+//
+//	data,err := ioutil.ReadAll(f)
+//	if err!= nil {
+//		w.WriteHeader(http.StatusInternalServerError)
+//		return
+//	}
+//
+//	w.Header().Set("Content-Type", "application/octect-stream")
+//	// attachment表示文件将会提示下载到本地，而不是直接在浏览器中打开
+//	w.Header().Set("content-disposition", "attachment; filename=\""+fm.FileName+"\"")
+//	w.Write(data)
+//
+//}

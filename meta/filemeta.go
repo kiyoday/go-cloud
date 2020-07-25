@@ -1,5 +1,7 @@
 package meta
 
+import "fmt"
+
 //FileMeta:文件元信息结构
 type FileMeta struct {
 	FileSha1 string
@@ -19,6 +21,7 @@ func init(){
 //UpdateFileMeta: 新增、更新文件元信息
 func UpdateFileMeta(fmeta FileMeta){
 	fileMetas[fmeta.FileSha1]=fmeta
+	fmt.Printf("update sha:\n %s \n",fmeta.FileSha1)
 }
 // GetFileMeta: 通过SHA1 获取文件信息对象
 func GetFileMeta(fileSha1 string) FileMeta{
