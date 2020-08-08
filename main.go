@@ -13,6 +13,7 @@ func main(){
 	http.HandleFunc("/file/download",handler.DownloadHandler)
 	http.HandleFunc("/file/update",handler.FileMetaUpdateHandler)
 	http.HandleFunc("/file/delete",handler.FileDeleteHandler)
+	http.HandleFunc("/file/test",handler.DbTest)
 	err := http.ListenAndServe(":8090",nil)
 	if err !=nil {
 		fmt.Printf("Failed to start server,err:%s",err.Error())

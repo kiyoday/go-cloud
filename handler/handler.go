@@ -1,13 +1,14 @@
 package handler
 
 import (
+	mydb "../db/mysql"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
-	"encoding/json"
 
 	"../meta"
 	"../util"
@@ -55,7 +56,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request){
 
 		newFile.Seek(0,0)
 		fileMeta.FileSha1 = util.FileSha1(newFile)
-		meta.UpdateFileMeta(fileMeta)
+		//meta.UpdateFileMeta(fileMeta)
+		meta.UpdateFileMetaDB(fileMeta)
 
 		//流程走完成功上传 重定向
 		http.Redirect(w,r,"/file/upload/suc",http.StatusFound)
@@ -72,7 +74,14 @@ func GetFileMetaHandler(w http.ResponseWriter,r *http.Request){
 	r.ParseForm()
 
 	filehash := r.Form["filehash"][0]
-	fMeta := meta.GetFileMeta(filehash)
+	//fMeta := meta.GetFileMeta(filehash)
+	fMeta,err := meta.GetFileMetaDB(filehash)
+	if err!=nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Printf("failed to get file meta,err:%s \n",err.Error())
+		return
+	}
+
 	data, err := json.Marshal(fMeta) // 转换成json格式
 	if err!=nil {
 		fmt.Printf("failed to get file meta,err:%s \n",err.Error())
@@ -126,7 +135,8 @@ func FileMetaUpdateHandler(w http.ResponseWriter, r *http.Request) {
 
 	curFileMeta := meta.GetFileMeta(fileSha1)
 	curFileMeta.FileName = newFileName
-	meta.UpdateFileMeta(curFileMeta)
+	//meta.UpdateFileMeta(curFileMeta)
+	meta.UpdateFileMetaDB(curFileMeta)
 
 	// TODO: 更新文件表中的元信息记录
 
@@ -152,4 +162,18 @@ func FileDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: 删除表文件信息
 
 	w.WriteHeader(http.StatusOK)
+}
+
+// 测试数据库连接
+func DbTest(w http.ResponseWriter, r *http.Request) {
+	err := mydb.DBConn().Ping()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Printf("Failed to connect database,err:%s \n",err.Error())
+		return
+	}else{
+		data, _ := json.Marshal("ok")
+		w.Write(data)
+		return
+	}
 }
