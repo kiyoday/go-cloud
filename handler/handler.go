@@ -1,6 +1,7 @@
 package handler
 
 import (
+	dblayer "../db"
 	mydb "../db/mysql"
 	"encoding/json"
 	"fmt"
@@ -59,8 +60,18 @@ func UploadHandler(w http.ResponseWriter, r *http.Request){
 		//meta.UpdateFileMeta(fileMeta)
 		meta.UpdateFileMetaDB(fileMeta)
 
-		//流程走完成功上传 重定向
-		http.Redirect(w,r,"/file/upload/suc",http.StatusFound)
+		//TODO 更新用户文件表
+		r.ParseForm()
+		userName := r.Form.Get("username")
+		res := dblayer.OnUserFileUploadFinished(
+			userName,fileMeta.FileSha1,fileMeta.FileName,fileMeta.FileSize)
+		if res {
+			//流程走完成功上传 重定向
+			http.Redirect(w,r,"/file/upload/suc",http.StatusFound)
+		}else{
+			w.Write([]byte("Upload Failed."))
+		}
+
 	}
 }
 
